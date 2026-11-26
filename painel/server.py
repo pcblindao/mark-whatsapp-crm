@@ -1283,7 +1283,7 @@ def presenca(dados):
 
 
 def api_info(jid):
-    if not jid_conhecido(jid):
+    if not (jid_conhecido(jid) or numero_liberado(jid)):  # número confirmado, ainda sem mensagens (membro de grupo)
         return {"success": False, "erro": "conversa desconhecida"}
     nomes, lid2pn = carregar_nomes()
     try:

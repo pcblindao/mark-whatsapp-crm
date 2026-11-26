@@ -461,6 +461,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{
 .participantes{background:var(--painel)}
 .part{display:flex;gap:12px;align-items:center;padding:9px 22px}
 .part:hover{background:var(--sel)}
+.part[data-jid]{cursor:pointer}
+.part.carregando{opacity:.55;cursor:progress}
 .part .info{flex:1;min-width:0;display:flex;flex-direction:column}
 .part .info b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .part .info small{color:var(--sub);font-size:12.5px}
@@ -2208,7 +2210,7 @@ async function abrirInfo(){
     $("#info-sub").textContent = `Grupo · ${ps.length} participante${ps.length === 1 ? "" : "s"}`;
     h += linhaInfo("Descrição", d.topic ? htmlTexto({texto: d.topic}) : "");
     h += linhaInfo("Criado em", d.created && !String(d.created).startsWith("0001") ? esc(new Date(d.created).toLocaleDateString("pt-BR")) : "");
-    h += `<div class="info-linha"><small>${ps.length} participantes</small></div><div class="participantes">` + ps.map(p => `<div class="part">
+    h += `<div class="info-linha"><small>${ps.length} participantes</small></div><div class="participantes">` + ps.map(p => `<div class="part"${p.me ? "" : ` data-jid="${esc(p.jid)}" data-num="${esc(String(p.phone || "").replace(/\D/g, ""))}" data-nome="${esc(p.name || "")}" role="button" tabindex="0" title="Abrir conversa e dados do contato"`}>
       <div class="av" data-av="${esc(p.jid)}">${(() => { const f = fotos.get(p.jid); return ehFoto(f) ? `<img src="${f}" alt="">` : esc(iniciais(p.name)); })()}</div>
       <div class="info"><b>${esc(p.me ? "Você" : p.name || fmtTel(p.phone))}</b><small>${esc(fmtTel(p.phone))}</small></div>
       ${p.super_admin ? `<span class="adm">dono</span>` : p.admin ? `<span class="adm">admin</span>` : ""}</div>`).join("") + `</div>`;
@@ -2231,6 +2233,10 @@ async function abrirInfo(){
   h += `<div class="mdl-abas"><button data-t="midia" class="on">Mídia</button><button data-t="docs">Documentos</button><button data-t="links">Links</button></div><div id="mdl-corpo"></div>`;
   h += `<div class="info-acoes"><button class="pill" id="info-mudo">${c.mudo ? "🔔 Reativar som e avisos" : "🔕 Silenciar conversa"}</button></div>`;
   $("#info-mais").innerHTML = h;
+  // membro do grupo: clique (ou Enter) abre a conversa; o painel de dados continua aberto, agora com os dados do contato
+  $("#info-mais").querySelectorAll(".part[data-jid]").forEach(el => {
+    el.onclick = () => abrirMembro(el);
+    el.onkeydown = e => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); abrirMembro(el); } }; });
   montarFicha(jid);  // [ficha]
   $("#info-mais").querySelectorAll(".av[data-av]").forEach(el => pedirFoto(el.dataset.av));
   pedirFoto(jid); pintarFoto(jid);
@@ -2239,6 +2245,10 @@ async function abrirInfo(){
   verMidias(jid, "midia");
 }
 function fecharInfo(){ $("#info").hidden = true; }
+function abrirMembro(el){ const {jid, num, nome} = el.dataset;
+  if(num) return window.conversarNumero(num, el, nome);
+  if(chatInfo(jid)) return abrir(jid);   // número oculto (@lid): só dá para abrir conversa que já existe
+  toast("O WhatsApp não mostra o número deste membro e ainda não há conversa com ele", "erro"); }
 // mídia, documentos e links da conversa (no painel de dados)
 const urlDe = (it, rota) => `/api/${rota}?id=${encodeURIComponent(it.id)}&jid=${encodeURIComponent(it.chat)}`;
 let seqMidias = 0;
@@ -5734,16 +5744,17 @@ a.num-link:focus-visible{outline:2px solid var(--link);outline-offset:1px}
   const novas = new Map(); // jid -> {numero, nome, t}
   async function consultar(d){ const r = await get("/api/numero?n=" + encodeURIComponent("+" + d));
     if(r.success === false) throw new Error(r.erro || "não foi possível consultar o número"); return r; }
-  async function conversar(d, bt, daBusca){
+  async function conversar(d, bt, daBusca, nome){
     const c = chatDoNumero(d); if(c){ fecharMenu(); if(daBusca) limparBusca(true); abrir(c.jid); return; }
     if(bt){ bt.disabled = true; bt.classList.add("carregando"); }
     try { const r = await consultar(d);
       if(!r.existe){ toast(`O número ${fmtNum(d)} não está no WhatsApp`, "erro"); return; }
-      if(!r.conhecido) novas.set(r.jid, {numero: r.numero || d, nome: r.nome || "", t: Date.now()});
+      if(!r.conhecido) novas.set(r.jid, {numero: r.numero || d, nome: r.nome || nome || "", t: Date.now()});
       fecharMenu(); if(daBusca) limparBusca(true); abrir(r.jid);
     } catch(e){ toast("Não foi possível abrir a conversa: " + e.message, "erro"); }
     finally { if(bt){ bt.disabled = false; bt.classList.remove("carregando"); } }
   }
+  window.conversarNumero = (d, el, nome) => { if(el.classList.contains("carregando")) return; return conversar(d, el, false, nome); };
   const ehNova = jid => novas.has(jid) && !chatInfo(jid);
   function notaNova(){ const n = novas.get(st.jid); if(!n || !ehNova(st.jid)) return; const box = $("#msgs"), v = box.querySelector(".vazio");
     if(!v || v.classList.contains("num-nova")) return;
@@ -5758,7 +5769,8 @@ a.num-link:focus-visible{outline:2px solid var(--link);outline-offset:1px}
   window.abrir = function(jid){ fecharMenu(); const r = abrir0.apply(this, arguments);
     if(ehNova(jid) && !cacheConv.has(jid)){ const n = novas.get(jid), ac = $("#av-cab");
       setTxt($("#titulo"), n.nome || fmtNum(n.numero)); setTxt($("#sub"), "Nova conversa");
-      ac.dataset.av = jid; ac.hidden = false; ac.innerHTML = n.nome ? esc(iniciais(n.nome)) : luc("user-round", 22); pintarFoto(jid); }
+      ac.dataset.av = jid; ac.hidden = false; ac.innerHTML = n.nome ? esc(iniciais(n.nome)) : luc("user-round", 22); pintarFoto(jid);
+      if(!$("#info").hidden) abrirInfo(); }   // refaz os dados já com o nome do contato novo
     return r; };
   // a liberação no servidor vale 10 min: se passou de 8, confirma de novo antes de mandar a 1ª mensagem
   window.executar = async function(p){ const n = p && novas.get(p.jid);
