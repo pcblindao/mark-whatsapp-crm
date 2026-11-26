@@ -8,7 +8,13 @@ Criado por **Marcos Roberto**. Distribuição gratuita. VPS e serviços de IA co
 
 - Conversas, contatos, arquivos, etiquetas e respostas rápidas.
 - Mensagens agendadas e acompanhamento de conversas.
-- CRM: cadastro de clientes, oportunidades em seis etapas, valores, responsáveis, tarefas, prazos e histórico de alterações.
+- CRM: ficha do cliente vinculada à conversa, origem e responsável.
+- Funil com seis etapas, movimentação por arraste, previsão e motivo de perda.
+- Produtos e serviços; propostas com itens, quantidades, desconto, validade, status e impressão em PDF pelo navegador.
+- Tarefas com prazos, prioridades, conclusão e reabertura; atividades de ligação, reunião e retorno.
+- Visão geral e relatórios por responsável, conversão e valores do funil.
+- Busca, filtros, CSV de clientes e exportação, arquivamento com restauração e histórico.
+- Botão CRM nos filtros do WhatsApp e atalho Ficha CRM na conversa.
 - Integrações existentes de IA para sugestões, resumos e correção de mensagens.
 
 O cadastro e motor de agentes de atendimento automático ainda estão em planejamento. Consulte [a análise de implementação](docs/ARQUITETURA-IA.md).
@@ -27,7 +33,7 @@ Depois siga [acesso, senha e conexão do WhatsApp](docs/INSTALACAO.md). Para abr
 
 ## Estado do projeto
 
-Versão inicial de desenvolvimento. O CRM usa uma instalação e uma equipe com acesso compartilhado; usuários, permissões individuais e múltiplos números ainda não estão implementados. Os clientes podem guardar o identificador da conversa; abertura direta da conversa a partir da ficha está pendente.
+Versão inicial de desenvolvimento. O CRM usa uma instalação e uma equipe com acesso compartilhado; usuários, permissões individuais e múltiplos números ainda não estão implementados. A ficha permite abrir a conversa vinculada no WhatsApp. O cadastro de responsáveis organiza atribuições; não cria logins individuais.
 
 A integração WhatsApp usa uma ponte baseada em whatsmeow, sem afiliação à Meta. A disponibilidade depende do protocolo do WhatsApp.
 

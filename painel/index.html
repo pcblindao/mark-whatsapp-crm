@@ -1088,8 +1088,8 @@ body:has(.modal.on) #toasts,body:has(#info:not([hidden])) #toasts{top:16px;botto
 body:has(#info:not([hidden])) #toasts,body:has(#lightbox.on) #toasts{top:72px} /* não cobre o ✕ do painel de dados / da foto */
 .bt[hidden],.rbt[hidden]{display:none!important}
 </style>
-</head>
-<body><a href="/crm" style="position:fixed;right:16px;bottom:16px;z-index:9999;background:#007d69;color:white;padding:12px;border-radius:8px">Abrir CRM</a>
+<style id="mark-crm-menu">#menu-crm{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-height:32px;padding:5px 14px;font-size:13.5px;border-radius:16px;background:var(--sel);color:var(--sub);text-decoration:none}#menu-crm:hover{background:var(--verde);color:#fff}@media(max-width:700px){#menu-crm{min-height:36px}}</style></head>
+<body>
 <div id="aviso-ponte" role="status" aria-live="polite" hidden></div>
 <div id="app">
   <section class="col" id="esq">
@@ -1104,6 +1104,7 @@ body:has(#info:not([hidden])) #toasts,body:has(#lightbox.on) #toasts{top:72px} /
       <button data-f="favoritas" id="aba-favs" hidden title="Conversas que têm mensagem favorita">Favoritas</button>
       <button data-f="pendentes" id="aba-pend" title="Chats de trabalho esperando resposta sua (notificador)">Triagem</button>
       <select id="f-etiq" title="Filtrar por etiqueta"><option value="">Etiquetas</option></select>
+      <a id="menu-crm" href="/crm" title="Clientes, vendas e acompanhamento">CRM</a>
       <label><input type="checkbox" id="ocultos"> mostrar ocultos</label>
     </div>
     <div id="res-msgs" hidden></div>
@@ -7782,5 +7783,14 @@ a.num-link:focus-visible{outline:2px solid var(--link);outline-offset:1px}
 .cc-colar{display:flex;gap:8px;flex-wrap:wrap}
 .cc-colar input{flex:1 1 220px;min-width:0;font:inherit;font-size:14px;padding:8px 10px;border-radius:8px;border:1px solid var(--borda);background:var(--painel);color:var(--texto)}
 </style>
-</body>
+<script id="mark-crm-navigation">
+(function(){
+  const header=document.querySelector('#conv .cab');
+  if(header&&!document.getElementById('crm-contact')){const a=document.createElement('a');a.id='crm-contact';a.className='pill';a.textContent='Ficha CRM';a.href='/crm';a.style.textDecoration='none';header.appendChild(a);}
+  const original=abrir;
+  abrir=function(jid){const r=original(jid),a=document.getElementById('crm-contact'),c=st.chats.find(x=>x.jid===jid);if(a)a.href='/crm?jid='+encodeURIComponent(jid)+'&nome='+encodeURIComponent(c?.nome||'');return r;};
+  const target=new URLSearchParams(location.search).get('crm_chat');
+  if(target&&/^[0-9]{5,25}@(s\.whatsapp\.net|lid|g\.us)$/.test(target)){let attempts=0;const timer=setInterval(()=>{if(st.chats.some(c=>c.jid===target)){clearInterval(timer);abrir(target);history.replaceState(null,'',location.pathname);}else if(++attempts>=60){clearInterval(timer);toast('Conversa ainda não encontrada. Atualize o WhatsApp.');}},500);}
+})();
+</script></body>
 </html>
