@@ -1,0 +1,19 @@
+name: mark-whatsapp-crm
+services:
+  crm:
+    build: .
+    restart: unless-stopped
+    init: true
+    environment:
+      TZ: ${TZ:-America/Sao_Paulo}
+      PAINEL_PROXY: ${CRM_DOMAIN:-}
+    ports:
+      - "127.0.0.1:${CRM_PORT:-8780}:8780"
+    volumes:
+      - crm_data:/data
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+volumes:
+  crm_data:

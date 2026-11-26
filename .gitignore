@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.env
+*.db*
+*.log
+*.bak
+*.tmp
+data/
+store/
+backups/
+config.json
+sessoes.json
+painel_estado.json*
+ACESSO.txt
+certificado/
+uploads/
+cache/
