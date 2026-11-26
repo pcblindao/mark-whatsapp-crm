@@ -7787,6 +7787,21 @@ a.num-link:focus-visible{outline:2px solid var(--link);outline-offset:1px}
 (function(){
   const header=document.querySelector('#conv .cab');
   if(header&&!document.getElementById('crm-contact')){const a=document.createElement('a');a.id='crm-contact';a.className='pill';a.textContent='Ficha CRM';a.href='/crm';a.style.textDecoration='none';header.appendChild(a);}
+  const crmLink=document.getElementById('crm-contact');
+  if(crmLink)crmLink.addEventListener('click',async ev=>{
+    if(!st.jid)return;
+    ev.preventDefault();const jid=st.jid,chat=chatInfo(jid)||{};
+    abrirDlg2('Ficha CRM','<p>Carregando ficha do cliente…</p>','Fechar',fecharDlg2);
+    try{
+      const d=await get('/api/crm');if(st.jid!==jid)return;
+      const c=d.clientes.find(x=>!x.arquivado&&x.jid===jid);
+      const url='/crm?jid='+encodeURIComponent(jid)+'&nome='+encodeURIComponent(chat.nome||'');
+      if(!c){document.querySelector('#dlg2-corpo').innerHTML='<p>Esta conversa ainda não está vinculada a um cliente.</p><a class="pill" href="'+esc(url)+'">Criar e vincular ficha CRM</a>';return;}
+      const ops=d.oportunidades.filter(x=>!x.arquivado&&x.cliente_id===c.id),tasks=d.tarefas.filter(x=>!x.arquivado&&!x.concluida&&x.cliente_id===c.id);
+      document.querySelector('#dlg2-corpo').innerHTML='<h3>'+esc(c.nome)+'</h3><p>'+esc(c.empresa||'')+' · '+esc(c.responsavel||'Sem responsável')+'</p><p style="white-space:pre-wrap">'+esc(c.notas||'')+'</p><h4>Oportunidades</h4>'+ (ops.map(o=>'<p>'+esc(o.titulo)+' · '+esc(o.etapa)+' · '+(o.valor_centavos/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})+'</p>').join('')||'<p>Nenhuma oportunidade.</p>')+'<h4>Próximos retornos</h4>'+(tasks.map(t=>'<p>'+esc(t.titulo)+' · '+esc(t.prazo||'Sem prazo')+'</p>').join('')||'<p>Nenhuma tarefa pendente.</p>')+'<div style="display:flex;gap:8px;flex-wrap:wrap"><a class="pill" href="'+esc(url)+'">Abrir ficha completa</a><a class="pill" href="'+esc(url+'&acao=oportunidades')+'">Nova oportunidade</a><a class="pill" href="'+esc(url+'&acao=tarefas')+'">Nova tarefa</a><a class="pill" href="'+esc(url+'&acao=atividades')+'">Registrar atividade</a></div><label style="display:block;margin-top:16px">Nota de acompanhamento<textarea id="crm-quick-note" maxlength="5000" style="display:block;width:100%;min-height:70px"></textarea></label><button class="pill" id="crm-save-note" type="button">Salvar nota</button><p id="crm-note-status" role="status"></p>';
+      document.getElementById('crm-save-note').onclick=async()=>{const button=document.getElementById('crm-save-note'),text=document.getElementById('crm-quick-note').value.trim();if(!text)return;button.disabled=true;try{await post('/api/crm',{entidade:'atividades',cliente_id:c.id,tipo:'Nota',titulo:'Acompanhamento da conversa',notas:text});document.getElementById('crm-quick-note').value='';document.getElementById('crm-note-status').textContent='Nota registrada no CRM';}catch(e){document.getElementById('crm-note-status').textContent=e.message;}finally{button.disabled=false;}};
+    }catch(e){document.querySelector('#dlg2-corpo').textContent='Não foi possível carregar a ficha: '+e.message;}
+  });
   const original=abrir;
   abrir=function(jid){const r=original(jid),a=document.getElementById('crm-contact'),c=st.chats.find(x=>x.jid===jid);if(a)a.href='/crm?jid='+encodeURIComponent(jid)+'&nome='+encodeURIComponent(c?.nome||'');return r;};
   const target=new URLSearchParams(location.search).get('crm_chat');

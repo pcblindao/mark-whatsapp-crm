@@ -9,12 +9,16 @@ Criado por **Marcos Roberto**. Distribuição gratuita. VPS e serviços de IA co
 - Conversas, contatos, arquivos, etiquetas e respostas rápidas.
 - Mensagens agendadas e acompanhamento de conversas.
 - CRM: ficha do cliente vinculada à conversa, origem e responsável.
-- Funil com seis etapas, movimentação por arraste, previsão e motivo de perda.
+- Funil configurável: criar, renomear, ordenar e colorir colunas, definir ganho/perda, arrastar oportunidades, previsão e motivo de perda.
 - Produtos e serviços; propostas com itens, quantidades, desconto, validade, status e impressão em PDF pelo navegador.
 - Tarefas com prazos, prioridades, conclusão e reabertura; atividades de ligação, reunião e retorno.
 - Visão geral e relatórios por responsável, conversão e valores do funil.
 - Busca, filtros, CSV de clientes e exportação, arquivamento com restauração e histórico.
-- Botão CRM nos filtros do WhatsApp e atalho Ficha CRM na conversa.
+- Campos personalizados por módulo: texto, número, data, lista e sim/não; obrigatoriedade e desativação sem apagar valores.
+- Configurações de empresa, validade e condições padrão das propostas.
+- Tema claro/escuro/automático compartilhado com o WhatsApp.
+- Ficha CRM dentro da conversa, oportunidades e tarefas do cliente, registro rápido de notas.
+- Conversa dentro do CRM, atualização de mensagens e envio manual de texto pelo canal existente.
 - Integrações existentes de IA para sugestões, resumos e correção de mensagens.
 
 O cadastro e motor de agentes de atendimento automático ainda estão em planejamento. Consulte [a análise de implementação](docs/ARQUITETURA-IA.md).
